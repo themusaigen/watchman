@@ -1,0 +1,16 @@
+{
+  "distribute": {
+    "additionalDirs": [
+      "src"
+    ],
+    "additionalFiles": [],
+    "constants": {
+      "MOONLY_BUNDLED": true
+    },
+    "ignoredDirs": [],
+    "output": "dist"
+  },
+  "library": "src",
+  "name": "watchman",
+  "source": "tests"
+}

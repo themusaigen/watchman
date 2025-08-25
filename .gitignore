@@ -1,0 +1,5 @@
+# Ignore distribution folder.
+dist
+
+# Ignore VSCode settings.
+.vscode
