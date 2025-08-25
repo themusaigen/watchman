@@ -2,7 +2,7 @@
 local M           = {
   _NAME = "Watchman",
   _AUTHOR = "Musaigen",
-  _VERSION = "1.0.0",
+  _VERSION = "1.0.1",
   _DESCRIPTION = "Powerful argument/type/rule checker."
 }
 
@@ -98,6 +98,17 @@ function M.contract(...)
 
   -- Pack rules.
   local rules = table.pack(...)
+
+  -- Handle Lua methods. Catch `object:method()` and 'object.method(object, ...)' calls.
+  local arg1n = debug.getlocal(2, 1)
+  if caller.namewhat == "method" or arg1n == "self" then
+    if rules.n < caller.nparams then
+      table.insert(rules, 1, "?")
+
+      -- Increment count of rules.
+      rules.n = rules.n + 1
+    end
+  end
 
   -- Count of rules must match nparams in caller.
   assert(rules.n == caller.nparams, "watchman.contract: arguments count mismatch.")

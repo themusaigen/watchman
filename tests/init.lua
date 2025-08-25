@@ -74,9 +74,28 @@ if MOONLY_ENVIRONMENT and not MOONLY_BUNDLED then
   end
 
   -- Perform check on that bro.
-  local T = { __typename = "Person", age = 19 }
+  do
+    local T = { __typename = "Person", age = 19 }
 
-  print("Custom checks:", watchman.test(T, "Person; $.age > 18")) -- true
+    print("Custom checks:", watchman.test(T, "Person; $.age > 18")) -- true
+  end
+
+  -- Watchman in methods.
+  do
+    local T = {}
+
+    function T.foo(self, a, b)
+      watchman.contract("number", "number")
+    end
+
+    function T:baz(a, b)
+      watchman.contract("number", "number")
+    end
+
+    -- Handle boths variants.
+    T.foo(T, 1, 2)
+    T:baz(1, 2)
+  end
 
   -- Don't perform code after.
   return
