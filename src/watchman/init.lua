@@ -2,7 +2,7 @@
 local M           = {
   _NAME = "Watchman",
   _AUTHOR = "Musaigen",
-  _VERSION = "1.0.2",
+  _VERSION = "1.0.3",
   _DESCRIPTION = "Powerful argument/type/rule checker."
 }
 
@@ -13,6 +13,17 @@ local parser      = require("watchman.parser")
 local typechecker = require("watchman.typechecker")
 local translator  = require("watchman.translator")
 local memoizer    = require("watchman.memoizer")
+
+-- In some cases, table.pack will not be present in Lua state.
+if not table.pack then
+  ---@diagnostic disable-next-line: duplicate-set-field
+  table.pack = function(...)
+    local result = { ... }
+    ---@diagnostic disable-next-line: inject-field
+    result.n = #result
+    return result
+  end
+end
 
 --- Produces test on specified variable with concrete rule.
 ---@param var any

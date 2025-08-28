@@ -85,7 +85,9 @@ function M.translate(str, var)
       elseif index < with_count then
         new_line("elseif env.istype(v, \"%s\") then", rule.type)
         new_line("\treturn %s", rule.code)
-      else
+      end
+
+      if index == with_count then
         new_line("end")
       end
     end
