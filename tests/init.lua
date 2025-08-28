@@ -90,6 +90,9 @@ if MOONLY_ENVIRONMENT and not MOONLY_BUNDLED then
 
     function T:baz(a, b)
       watchman.contract("number", "number")
+
+      -- Also can check self if needed.
+      watchman.contract("table", "number", "number")
     end
 
     -- Handle boths variants.

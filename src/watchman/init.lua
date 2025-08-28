@@ -2,7 +2,7 @@
 local M           = {
   _NAME = "Watchman",
   _AUTHOR = "Musaigen",
-  _VERSION = "1.0.1",
+  _VERSION = "1.0.2",
   _DESCRIPTION = "Powerful argument/type/rule checker."
 }
 

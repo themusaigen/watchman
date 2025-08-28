@@ -113,9 +113,9 @@ function M.translate(str, var)
       local checker = generator()
 
       -- Add watchman's environment to checker environment.
-      local fenv = getfenv(checker)
-      fenv.env = env
-      setfenv(checker, fenv)
+      local context = debug.getfenv(checker)
+      context.env = env
+      debug.setfenv(checker, context)
 
       -- Append new cache.
       cache = {

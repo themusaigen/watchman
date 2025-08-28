@@ -34,8 +34,17 @@ function M:parse_typeunion(stream)
     local rhs = self:parse_expression(stream)
 
     local message = "watchman: '?' flag is disallowed in union expression, use (...|...)? instead."
-    assert(lhs.type ~= node_type.OPTTYPECHECK, message)
-    assert(rhs.type ~= node_type.OPTTYPECHECK, message)
+
+    ---@cast lhs Watchman.Node.Typecheck
+    ---@cast rhs Watchman.Node.Typecheck
+
+    if lhs.type == node_type.TYPECHECK then
+      assert(not lhs.optional, message)
+    end
+
+    if rhs.type == node_type.TYPECHECK then
+      assert(not rhs.optional, message)
+    end
 
     local node = {
       type = node_type.TYPEUNION,
