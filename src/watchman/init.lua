@@ -1,23 +1,29 @@
 ---@class Watchman: table
-local M           = {
+local M                 = {
   _NAME = "Watchman",
   _AUTHOR = "Musaigen",
-  _VERSION = "1.0.3",
+  _VERSION = "1.0.4",
   _DESCRIPTION = "Powerful argument/type/rule checker."
 }
 
 -- Modules
 
-local lexer       = require("watchman.lexer")
-local parser      = require("watchman.parser")
-local typechecker = require("watchman.typechecker")
-local translator  = require("watchman.translator")
-local memoizer    = require("watchman.memoizer")
+local lexer             = require("watchman.lexer")
+local parser            = require("watchman.parser")
+local typechecker       = require("watchman.typechecker")
+local translator        = require("watchman.translator")
+local memoizer          = require("watchman.memoizer")
+
+-- Cache Lua functions.
+local error, assert     = error, assert
+local insert, pack      = table.insert, table.pack
+local gsub, format      = string.gsub, string.format
+local getinfo, getlocal = debug.getinfo, debug.getlocal
 
 -- In some cases, table.pack will not be present in Lua state.
-if not table.pack then
+if not pack then
   ---@diagnostic disable-next-line: duplicate-set-field
-  table.pack = function(...)
+  pack = function(...)
     local result = { ... }
     ---@diagnostic disable-next-line: inject-field
     result.n = #result
@@ -72,7 +78,7 @@ end
 function M.assert(var, rule)
   local passed, err = M.test(var, rule)
   if not passed then
-    error(("assertion failed: %s"):format(err))
+    error(format("assertion failed: %s", err))
   end
 end
 
@@ -80,7 +86,7 @@ end
 ---@param ... any
 function M.check(...)
   -- Pack args.
-  local args = table.pack(...)
+  local args = pack(...)
 
   -- Count of rules must match count of params.
   assert(args.n % 2 == 0, "watchman.check: arguments count mismatch.")
@@ -93,10 +99,10 @@ function M.check(...)
       local argn = i > 1 and i - 1 or i
 
       -- Beautify error message.
-      local message = err:gsub("%$", "#" .. argn)
+      local message = gsub(err, "%$", "#" .. argn)
 
       -- Error!
-      error(("bad argument #%d: %s"):format(argn, message))
+      error(format("bad argument #%d: %s", argn, message))
     end
   end
 end
@@ -105,16 +111,16 @@ end
 ---@param ... string
 function M.contract(...)
   -- Get information about caller.
-  local caller = debug.getinfo(2)
+  local caller = getinfo(2)
 
   -- Pack rules.
-  local rules = table.pack(...)
+  local rules = pack(...)
 
   -- Handle Lua methods. Catch `object:method()` and 'object.method(object, ...)' calls.
-  local arg1n = debug.getlocal(2, 1)
+  local arg1n = getlocal(2, 1)
   if caller.namewhat == "method" or arg1n == "self" then
     if rules.n < caller.nparams then
-      table.insert(rules, 1, "?")
+      insert(rules, 1, "?")
 
       -- Increment count of rules.
       rules.n = rules.n + 1
@@ -126,16 +132,16 @@ function M.contract(...)
 
   -- Traverse around all params.
   for argn = 1, caller.nparams do
-    local argname, argvalue = debug.getlocal(2, argn)
+    local argname, argvalue = getlocal(2, argn)
 
     -- Do test.
     local passed, err = M.test(argvalue, rules[argn])
     if not passed and err then
       -- Beautify error message.
-      local message = err:gsub("%$", argname)
+      local message = gsub(err, "%$", argname)
 
       -- Error!
-      error(("bad argument '%s' to function '%s' (%s)"):format(argname, caller.name, message))
+      error(format("bad argument '%s' to function '%s' (%s)", argname, caller.name, message))
     end
   end
 end

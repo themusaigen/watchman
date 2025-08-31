@@ -109,7 +109,37 @@ local Person = { __typename = "Person", age = 25 }
 print(watchman.test(Person, "Person; $.age > 18")) --> true
 ```
 
-Also see `tests/init.lua` for more examples.
+4. Methods.
+
+`watchman` succesfully handles method calls via `object:method(...)` or `object.method(object, ...)` (but in this case only if 1st argument is named as self).
+
+```lua
+ local T = {}
+
+function T.foo(self, a, b) -- `self` is important!
+  -- If you name 1st argument as `this` or any other word...
+  -- watchman will not work properly.
+  watchman.contract("number", "number")
+end
+
+function T:baz(a, b)
+  watchman.contract("number", "number")
+
+  -- Also can check self if needed.
+  watchman.contract("table", "number", "number")
+end
+
+-- Handle boths variants.
+T.foo(T, 1, 2)
+T:baz(1, 2)
+```
+
+### How it works?
+Watchman retrieves debug information when method called and checks `namewhat` field in info's table. If `namewhat` field contains `method`, then watchman adds `?` rule as first parameter, if user doesn't passed any rule for `self`. If `namewhat` don't contains `method` then it checks 1st argument name, if it matches `self`, then watchman produces the same operation.
+
+### More examples
+
+See `tests/init.lua` for more examples.
 
 # License
 

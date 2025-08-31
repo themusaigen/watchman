@@ -1,8 +1,11 @@
 ---@class Watchman.Translator
-local M         = {}
+local M                      = {}
 
-local node_type = require("watchman.node_type")
-local env       = require("watchman.env")
+local node_type              = require("watchman.node_type")
+local env                    = require("watchman.env")
+
+-- Cache Lua functions.
+local ipairs, format, concat = ipairs, string.format, table.concat
 
 --- Helper for producing typechecks.
 ---@param value any
@@ -19,7 +22,7 @@ local function produce_typecheck(value, type, optional)
     return true
   end
 
-  return false, ("%s%s expected, got %s"):format(type, optional and " or no value" or "", env.type(value))
+  return false, format("%s%s expected, got %s", type, optional and " or no value" or "", env.type(value))
 end
 
 --- Any types node. Allowes anything.
@@ -97,7 +100,7 @@ function M:typeunion(value, union)
     end
 
     -- Return state and error message.
-    return false, ("%s expected, got %s"):format(table.concat(types, " or "), env.type(value))
+    return false, format("%s expected, got %s", concat(types, " or "), env.type(value))
   end
 
   return true

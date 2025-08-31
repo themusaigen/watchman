@@ -4,15 +4,16 @@
 ---@field private _offset number
 local M = {}
 
+-- Cache Lua functions
+local setmetatable, concat, sub = setmetatable, table.concat, string.sub
+
 --- Contstructs new charstream.
 ---@param str string
 ---@return Watchman.Charstream
 function M.new(str)
-  assert(type(str) == "string", ("bad argument #1 to `new` (expected string, got %s)"):format(type(str)))
-
   local content = {}
   for i = 1, #str do
-    content[i] = str:sub(i, i)
+    content[i] = sub(str, i, i)
   end
 
   return setmetatable({
@@ -60,7 +61,7 @@ end
 --- Returns string starting from stream's offset.
 ---@return string
 function M:tostring()
-  return table.concat(self._content, "", self._offset)
+  return concat(self._content, "", self._offset)
 end
 
 return M

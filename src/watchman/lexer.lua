@@ -1,15 +1,19 @@
 ---@class Watchman.Lexer
-local M          = {}
+local M            = {}
 
-local charstream = require("watchman.charstream")
-local token_type = require("watchman.token_type")
-local utility    = require("watchman.utility")
+local charstream   = require("watchman.charstream")
+local token_type   = require("watchman.token_type")
+local utility      = require("watchman.utility")
+
+-- Cache Lua functions.
+local assert, type = assert, type
+local format, byte = string.format, string.byte
 
 --- Returns is character matches alpha character.
 ---@param char string
 ---@return boolean
 local function isalpha(char)
-  local code = string.byte(char)
+  local code = byte(char)
   return (code >= 65 and code <= 90)
       or (code >= 97 and code <= 122)
 end
@@ -18,7 +22,7 @@ end
 ---@param char string
 ---@return boolean
 local function isblank(char)
-  local code = string.byte(char)
+  local code = byte(char)
   return (code == 32) or (code == 13) or (code == 9) or (code == 10)
 end
 
@@ -27,7 +31,7 @@ end
 ---@return Watchman.Token[]
 ---@return string?
 function M.lex(str)
-  assert(type(str) == "string", ("bad argument #1 to `lex` (expected string, got %s)"):format(type(str)))
+  assert(type(str) == "string", format("bad argument #1 to `lex` (expected string, got %s)", type(str)))
 
   local tokens = {}
   local function new(type, data)

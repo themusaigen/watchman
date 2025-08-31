@@ -8,6 +8,9 @@
 ---@field private _size number
 local M = {}
 
+-- Cache Lua functions.
+local setmetatable = setmetatable
+
 --- Returns new token stream.
 ---@param tokens Watchman.Token[]
 ---@return Watchman.Tokenstream

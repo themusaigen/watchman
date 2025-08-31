@@ -7,11 +7,17 @@
 ---@field without Watchman.Translator.Inner.Rule[]
 
 ---@class Watchman.Translator
-local M        = {}
+local M                         = {}
 
-local utility  = require("watchman.utility")
-local memoizer = require("watchman.memoizer")
-local env      = require("watchman.env")
+local utility                   = require("watchman.utility")
+local memoizer                  = require("watchman.memoizer")
+local env                       = require("watchman.env")
+
+-- Cache Lua functions.
+local ipairs, error, loadstring = ipairs, error, loadstring
+local format, gsub, match       = string.format, string.gsub, string.match
+local concat                    = table.concat
+local getfenv, setfenv          = debug.getfenv, debug.setfenv
 
 --- Generates error message.
 ---@param rules Watchman.Translator.Inner.Rules
@@ -33,10 +39,10 @@ local function generate_error_message(rules, argument)
   end
 
   if #checks > 1 then
-    return ("failed checks %s"):format(table.concat(checks, ", "))
+    return format("failed checks %s", concat(checks, ", "))
   end
 
-  return ("failed check %s"):format(checks[1])
+  return format("failed check %s", checks[1])
 end
 
 --- Returns translated pseudocode to executable Lua code.
@@ -51,12 +57,12 @@ function M.translate(str, var)
     -- `without` means without type requirements.
     local rules = { with = {}, without = {} }
     for _, rule in ipairs(utility.split(str, ";")) do
-      local type_requirement = rule:match("<(%S+)>:")
+      local type_requirement = match(rule, "<(%S+)>:")
 
       -- This rule is specified for concrete variable type.
       if type_requirement then
         -- Remove type requirement from the rule.
-        rule = utility.trim(rule:gsub(("<%s+>:"):format(type_requirement), ""))
+        rule = utility.trim(gsub(rule, format("<%s+>:", type_requirement), ""))
 
         -- Add new requirement.
         rules.with[#rules.with + 1] = {
@@ -73,7 +79,7 @@ function M.translate(str, var)
     -- Now generate executable Lua code.
     local luac = { "return function(v)" }
     local function new_line(line, ...)
-      luac[#luac + 1] = line:format(...)
+      luac[#luac + 1] = format(line, ...)
     end
 
     -- Traverse for rules with type requirements and add them first.
@@ -86,10 +92,10 @@ function M.translate(str, var)
         new_line("elseif env.istype(v, \"%s\") then", rule.type)
         new_line("\treturn %s", rule.code)
       end
+    end
 
-      if index == with_count then
-        new_line("end")
-      end
+    if with_count > 0 then
+      new_line("end")
     end
 
     -- Traverse for rules without type requirements.
@@ -107,7 +113,7 @@ function M.translate(str, var)
     new_line("end")
 
     -- Format code. Replacing all $-markers to 'v'.
-    local code = table.concat(luac, "\n"):gsub("%$", "v")
+    local code = gsub(concat(luac, "\n"), "%$", "v")
 
     -- Generate function...
     local generator, err = loadstring(code)
@@ -115,9 +121,9 @@ function M.translate(str, var)
       local checker = generator()
 
       -- Add watchman's environment to checker environment.
-      local context = debug.getfenv(checker)
+      local context = getfenv(checker)
       context.env = env
-      debug.setfenv(checker, context)
+      setfenv(checker, context)
 
       -- Append new cache.
       cache = {
@@ -131,7 +137,7 @@ function M.translate(str, var)
       -- Return to the user.
       return checker, generate_error_message(cache.rules, var)
     else
-      error(("watchman: got error '%s' while generating Lua code for '%s'"):format(err, str))
+      error(format("watchman: got error '%s' while generating Lua code for '%s'", err, str))
     end
   end
 end

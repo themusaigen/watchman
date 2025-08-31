@@ -1,9 +1,12 @@
 ---@class Watchman.Parser
-local M           = {}
+local M             = {}
 
-local token_type  = require("watchman.token_type")
-local node_type   = require("watchman.node_type")
-local tokenstream = require("watchman.tokenstream")
+local token_type    = require("watchman.token_type")
+local node_type     = require("watchman.node_type")
+local tokenstream   = require("watchman.tokenstream")
+
+-- Cache Lua functions.
+local error, assert = error, assert
 
 --- Parses primary constructions.
 ---@param stream Watchman.Tokenstream
